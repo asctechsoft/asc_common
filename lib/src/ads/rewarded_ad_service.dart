@@ -2,6 +2,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_frequency_tracker.dart';
 import 'ad_load_state.dart';
+import 'ads_config.dart';
+import 'test_ad_ids.dart';
 
 /// Bọc vòng đời Rewarded Ad - trả phần thưởng qua callback
 /// `onUserEarnedReward` khi người dùng xem hết quảng cáo.
@@ -9,22 +11,41 @@ class AscRewardedAdService {
   AscRewardedAdService({
     required this.adUnitId,
     AscAdFrequencyTracker? frequencyTracker,
+    this.onPaidEvent,
   }) : frequencyTracker = frequencyTracker ?? AscAdFrequencyTracker();
 
   final String adUnitId;
   final AscAdFrequencyTracker frequencyTracker;
+
+  /// Gọi khi ghi nhận doanh thu quy đổi - xem `AscBannerAdView.onPaidEvent`.
+  final void Function(
+    Ad ad,
+    double valueMicros,
+    PrecisionType precision,
+    String currencyCode,
+  )?
+  onPaidEvent;
 
   RewardedAd? _ad;
   AdLoadState _state = const AdIdle();
   AdLoadState get state => _state;
 
   Future<void> load() async {
+    if (AscAdsConfig.isHideAd) return;
     _state = const AdLoading();
-    await RewardedAd.load(
+    final effectiveId = AscAdsConfig.resolveAdUnitId(
       adUnitId: adUnitId,
+      androidTestId: AscTestAdIds.androidRewarded,
+      iosTestId: AscTestAdIds.iosRewarded,
+    );
+    await RewardedAd.load(
+      adUnitId: effectiveId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            onPaidEvent?.call(ad, valueMicros, precision, currencyCode);
+          };
           _ad = ad;
           _state = const AdLoaded();
         },
@@ -43,6 +64,7 @@ class AscRewardedAdService {
     required void Function(AdWithoutView ad, RewardItem reward)
     onUserEarnedReward,
   }) async {
+    if (AscAdsConfig.isHideAd) return false;
     final ad = _ad;
     if (ad == null) return false;
 

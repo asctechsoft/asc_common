@@ -4,6 +4,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_frequency_tracker.dart';
 import 'ad_load_state.dart';
+import 'ads_config.dart';
+import 'test_ad_ids.dart';
 
 /// Bọc vòng đời Interstitial Ad: tải trước, giữ sẵn, hiện khi cần rồi tự
 /// tải lại quảng cáo tiếp theo - app gọi [load] một lần lúc khởi động rồi
@@ -13,22 +15,41 @@ class AscInterstitialAdService {
   AscInterstitialAdService({
     required this.adUnitId,
     AscAdFrequencyTracker? frequencyTracker,
+    this.onPaidEvent,
   }) : frequencyTracker = frequencyTracker ?? AscAdFrequencyTracker();
 
   final String adUnitId;
   final AscAdFrequencyTracker frequencyTracker;
+
+  /// Gọi khi ghi nhận doanh thu quy đổi - xem `AscBannerAdView.onPaidEvent`.
+  final void Function(
+    Ad ad,
+    double valueMicros,
+    PrecisionType precision,
+    String currencyCode,
+  )?
+  onPaidEvent;
 
   InterstitialAd? _ad;
   AdLoadState _state = const AdIdle();
   AdLoadState get state => _state;
 
   Future<void> load() async {
+    if (AscAdsConfig.isHideAd) return;
     _state = const AdLoading();
-    await InterstitialAd.load(
+    final effectiveId = AscAdsConfig.resolveAdUnitId(
       adUnitId: adUnitId,
+      androidTestId: AscTestAdIds.androidInterstitial,
+      iosTestId: AscTestAdIds.iosInterstitial,
+    );
+    await InterstitialAd.load(
+      adUnitId: effectiveId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            onPaidEvent?.call(ad, valueMicros, precision, currencyCode);
+          };
           _ad = ad;
           _state = const AdLoaded();
         },
@@ -43,6 +64,7 @@ class AscInterstitialAdService {
   /// Hiện quảng cáo nếu đã tải xong và chưa vi phạm [frequencyTracker]. Trả
   /// về `true` nếu đã hiện được. Tự [load] lại cho lần sau sau khi đóng.
   Future<bool> showIfReady() async {
+    if (AscAdsConfig.isHideAd) return false;
     final ad = _ad;
     if (ad == null || !frequencyTracker.canShow) return false;
 

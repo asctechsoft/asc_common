@@ -1,6 +1,8 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_load_state.dart';
+import 'ads_config.dart';
+import 'test_ad_ids.dart';
 
 /// Bọc App Open Ad - quảng cáo hiện khi người dùng quay lại app từ nền.
 ///
@@ -11,10 +13,20 @@ class AscAppOpenAdService {
   AscAppOpenAdService({
     required this.adUnitId,
     this.maxCacheDuration = const Duration(hours: 4),
+    this.onPaidEvent,
   });
 
   final String adUnitId;
   final Duration maxCacheDuration;
+
+  /// Gọi khi ghi nhận doanh thu quy đổi - xem `AscBannerAdView.onPaidEvent`.
+  final void Function(
+    Ad ad,
+    double valueMicros,
+    PrecisionType precision,
+    String currencyCode,
+  )?
+  onPaidEvent;
 
   AppOpenAd? _ad;
   DateTime? _loadedAt;
@@ -30,12 +42,21 @@ class AscAppOpenAdService {
   }
 
   Future<void> load() async {
+    if (AscAdsConfig.isHideAd) return;
     _state = const AdLoading();
-    await AppOpenAd.load(
+    final effectiveId = AscAdsConfig.resolveAdUnitId(
       adUnitId: adUnitId,
+      androidTestId: AscTestAdIds.androidAppOpen,
+      iosTestId: AscTestAdIds.iosAppOpen,
+    );
+    await AppOpenAd.load(
+      adUnitId: effectiveId,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            onPaidEvent?.call(ad, valueMicros, precision, currencyCode);
+          };
           _ad = ad;
           _loadedAt = DateTime.now();
           _state = const AdLoaded();
@@ -50,6 +71,7 @@ class AscAppOpenAdService {
 
   /// Hiện quảng cáo nếu đã tải và còn hạn dùng. Trả về `true` nếu đã hiện.
   Future<bool> showIfAvailable() async {
+    if (AscAdsConfig.isHideAd) return false;
     if (_isShowing || !_isAvailable) return false;
     final ad = _ad!;
 

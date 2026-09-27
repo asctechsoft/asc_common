@@ -6,7 +6,10 @@
 library;
 
 // UI primitives.
+export 'src/ui/app_icon.dart';
 export 'src/ui/app_layout.dart';
+export 'src/ui/app_modifier.dart';
+export 'src/ui/app_spacer.dart';
 export 'src/ui/app_text.dart';
 export 'src/ui/app_text_auto_resize.dart';
 
@@ -18,6 +21,7 @@ export 'src/localization/asc_localizations_delegate.dart';
 export 'src/ads/ad_frequency_tracker.dart';
 export 'src/ads/ad_load_state.dart';
 export 'src/ads/ad_preload_service.dart';
+export 'src/ads/ads_config.dart';
 export 'src/ads/app_open_ad_service.dart';
 export 'src/ads/banner_ad_view.dart';
 export 'src/ads/interstitial_ad_service.dart';

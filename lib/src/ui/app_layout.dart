@@ -1,48 +1,25 @@
 import 'package:flutter/material.dart';
 
-/// Bọc [Container] với API ngắn gọn cho các trường hợp hay dùng (padding,
-/// margin, màu nền, bo góc) - thay cho việc lặp lại `BoxDecoration` khắp nơi.
-class AppBox extends StatelessWidget {
-  const AppBox({
-    super.key,
-    this.child,
-    this.padding,
-    this.margin,
-    this.color,
-    this.borderRadius,
-    this.width,
-    this.height,
-    this.alignment,
-  });
+import 'app_modifier.dart';
 
-  final Widget? child;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final Color? color;
-  final BorderRadiusGeometry? borderRadius;
-  final double? width;
-  final double? height;
-  final AlignmentGeometry? alignment;
+/// Builds its child lazily so a `modifier:` chain wraps this element, not
+/// the `Row`/`Column` itself - keeps `Expanded`/`Flexible` children working
+/// (they need a direct `Flex` parent; wrapping the `Row`/`Column` itself in
+/// e.g. a `Padding` would break that).
+class _FlexModifierWrapper extends StatelessWidget {
+  const _FlexModifierWrapper({required this.builder});
+
+  final Widget Function() builder;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      padding: padding,
-      margin: margin,
-      alignment: alignment,
-      decoration: (color != null || borderRadius != null)
-          ? BoxDecoration(color: color, borderRadius: borderRadius)
-          : null,
-      child: child,
-    );
-  }
+  Widget build(BuildContext context) => builder();
 }
 
 /// [Row] với `mainAxisSize: MainAxisSize.min` mặc định - lỗi hay gặp nhất khi
 /// dùng `Row` trực tiếp là quên set min nên tràn ngang khi đặt trong
-/// `Row`/`Wrap` khác; đặt sẵn ở đây, cần `max` thì tự truyền đè.
+/// `Row`/`Wrap` khác; đặt sẵn ở đây, cần `max` thì tự truyền đè. Nhận thêm
+/// `modifier:` (xem [AppModifier]) để bọc `Padding`/`DecoratedBox`/... quanh
+/// chính `Row` mà không phá vòng cha `Flex` mà `Expanded`/`Flexible` con cần.
 class AppRow extends StatelessWidget {
   const AppRow({
     super.key,
@@ -50,21 +27,75 @@ class AppRow extends StatelessWidget {
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.mainAxisSize = MainAxisSize.min,
+    this.textDirection,
+    this.verticalDirection = VerticalDirection.down,
+    this.textBaseline,
+    this.spacing = 0.0,
+    this.modifier = Modifier,
   });
 
   final List<Widget> children;
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
   final MainAxisSize mainAxisSize;
+  final TextDirection? textDirection;
+  final VerticalDirection verticalDirection;
+  final TextBaseline? textBaseline;
+  final double spacing;
+  final AppModifier modifier;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final row = Row(
       mainAxisAlignment: mainAxisAlignment,
       crossAxisAlignment: crossAxisAlignment,
       mainAxisSize: mainAxisSize,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
+      spacing: spacing,
       children: children,
     );
+    if (modifier.isEmpty) return row;
+    return modifier.apply(_FlexModifierWrapper(builder: () => row));
+  }
+}
+
+/// [AppRow] with `mainAxisAlignment`/`crossAxisAlignment` pinned to center.
+class AppRowCentered extends StatelessWidget {
+  const AppRowCentered({
+    super.key,
+    required this.children,
+    this.mainAxisSize = MainAxisSize.min,
+    this.textDirection,
+    this.verticalDirection = VerticalDirection.down,
+    this.textBaseline,
+    this.spacing = 0.0,
+    this.modifier = Modifier,
+  });
+
+  final List<Widget> children;
+  final MainAxisSize mainAxisSize;
+  final TextDirection? textDirection;
+  final VerticalDirection verticalDirection;
+  final TextBaseline? textBaseline;
+  final double spacing;
+  final AppModifier modifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final row = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: mainAxisSize,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
+      spacing: spacing,
+      children: children,
+    );
+    if (modifier.isEmpty) return row;
+    return modifier.apply(_FlexModifierWrapper(builder: () => row));
   }
 }
 
@@ -76,50 +107,141 @@ class AppColumn extends StatelessWidget {
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.mainAxisSize = MainAxisSize.min,
+    this.textDirection,
+    this.verticalDirection = VerticalDirection.down,
+    this.textBaseline,
+    this.spacing = 0.0,
+    this.modifier = Modifier,
   });
 
   final List<Widget> children;
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
   final MainAxisSize mainAxisSize;
+  final TextDirection? textDirection;
+  final VerticalDirection verticalDirection;
+  final TextBaseline? textBaseline;
+  final double spacing;
+  final AppModifier modifier;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final column = Column(
       mainAxisAlignment: mainAxisAlignment,
       crossAxisAlignment: crossAxisAlignment,
       mainAxisSize: mainAxisSize,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
+      spacing: spacing,
       children: children,
     );
+    if (modifier.isEmpty) return column;
+    return modifier.apply(_FlexModifierWrapper(builder: () => column));
   }
 }
 
-/// Icon ăn theo `IconTheme` hiện tại, chỉ thêm tiện lợi đặt nhanh size/color
-/// mà không cần bọc thêm `IconTheme.merge`.
-class AppIcon extends StatelessWidget {
-  const AppIcon(this.icon, {super.key, this.size, this.color});
+/// [AppColumn] with `mainAxisAlignment`/`crossAxisAlignment` pinned to center.
+class AppColumnCentered extends StatelessWidget {
+  const AppColumnCentered({
+    super.key,
+    required this.children,
+    this.mainAxisSize = MainAxisSize.min,
+    this.textDirection,
+    this.verticalDirection = VerticalDirection.down,
+    this.textBaseline,
+    this.spacing = 0.0,
+    this.modifier = Modifier,
+  });
 
-  final IconData icon;
-  final double? size;
-  final Color? color;
+  final List<Widget> children;
+  final MainAxisSize mainAxisSize;
+  final TextDirection? textDirection;
+  final VerticalDirection verticalDirection;
+  final TextBaseline? textBaseline;
+  final double spacing;
+  final AppModifier modifier;
 
   @override
-  Widget build(BuildContext context) => Icon(icon, size: size, color: color);
+  Widget build(BuildContext context) {
+    final column = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: mainAxisSize,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
+      spacing: spacing,
+      children: children,
+    );
+    if (modifier.isEmpty) return column;
+    return modifier.apply(_FlexModifierWrapper(builder: () => column));
+  }
 }
 
-/// Khoảng trống một chiều - thay cho việc phải nhớ chiều nào là `width`,
-/// chiều nào là `height` của `SizedBox` trần.
-class AppSpacer extends StatelessWidget {
-  const AppSpacer.horizontal(this.value, {super.key}) : _vertical = false;
+/// [Stack] of freely overlapping [children], sized/decorated through a
+/// `modifier:` chain (see [AppModifier]) instead of separate
+/// padding/color/borderRadius fields - compose
+/// `Modifier.padding(...).background(...)` instead.
+class AppBox extends StatelessWidget {
+  const AppBox({
+    super.key,
+    this.alignment = AlignmentDirectional.topStart,
+    this.textDirection,
+    this.fit = StackFit.loose,
+    this.clipBehavior = Clip.hardEdge,
+    this.children = const <Widget>[],
+    this.modifier = Modifier,
+  });
 
-  const AppSpacer.vertical(this.value, {super.key}) : _vertical = true;
-
-  final double value;
-  final bool _vertical;
+  final List<Widget> children;
+  final AlignmentGeometry alignment;
+  final TextDirection? textDirection;
+  final StackFit fit;
+  final Clip clipBehavior;
+  final AppModifier modifier;
 
   @override
-  Widget build(BuildContext context) =>
-      _vertical ? SizedBox(height: value) : SizedBox(width: value);
+  Widget build(BuildContext context) {
+    final stack = Stack(
+      alignment: alignment,
+      textDirection: textDirection,
+      fit: fit,
+      clipBehavior: clipBehavior,
+      children: children,
+    );
+    return stack.apply(modifier);
+  }
+}
+
+/// [AppBox] with `alignment` pinned to [Alignment.center].
+class AppBoxCentered extends StatelessWidget {
+  const AppBoxCentered({
+    super.key,
+    this.textDirection,
+    this.fit = StackFit.loose,
+    this.clipBehavior = Clip.hardEdge,
+    this.children = const <Widget>[],
+    this.modifier = Modifier,
+  });
+
+  final List<Widget> children;
+  final TextDirection? textDirection;
+  final StackFit fit;
+  final Clip clipBehavior;
+  final AppModifier modifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final stack = Stack(
+      alignment: Alignment.center,
+      textDirection: textDirection,
+      fit: fit,
+      clipBehavior: clipBehavior,
+      children: children,
+    );
+    return stack.apply(modifier);
+  }
 }
 
 /// [Divider] mỏng, màu ăn theo `DividerTheme`/`ColorScheme` hiện tại thay vì
@@ -138,9 +260,9 @@ class AppDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Divider(
-        thickness: thickness,
-        indent: indent,
-        endIndent: endIndent,
-        height: thickness,
-      );
+    thickness: thickness,
+    indent: indent,
+    endIndent: endIndent,
+    height: thickness,
+  );
 }
