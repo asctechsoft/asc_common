@@ -89,8 +89,9 @@ class AscNativeAdService {
   /// Widget hiện quảng cáo đã tải - ô trống cùng [height] nếu chưa tải xong,
   /// để layout không giật khi gọi trước khi [isLoaded].
   Widget render({double height = 250}) {
+    if (AscAdsConfig.isHideAd) return const SizedBox.shrink();
     final ad = _ad;
-    if (AscAdsConfig.isHideAd || !isLoaded || ad == null) {
+    if (!isLoaded || ad == null) {
       return SizedBox(height: height);
     }
     return SizedBox(width: double.infinity, height: height, child: AdWidget(ad: ad));

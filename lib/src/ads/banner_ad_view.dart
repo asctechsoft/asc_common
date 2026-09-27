@@ -101,8 +101,12 @@ class _AscBannerAdViewState extends State<AscBannerAdView> {
 
   @override
   Widget build(BuildContext context) {
+    // Ẩn hẳn - không có gì sẽ tải nên không giữ chỗ (khác nhánh dưới, vẫn
+    // giữ chỗ trong lúc CHỜ tải xong để layout không giật).
+    if (AscAdsConfig.isHideAd) return const SizedBox.shrink();
+
     final ad = _ad;
-    if (AscAdsConfig.isHideAd || !_loaded || ad == null) {
+    if (!_loaded || ad == null) {
       // Giữ đúng kích thước để layout không giật khi quảng cáo tải xong.
       return SizedBox(
         width: _resolvedSize.width.toDouble(),

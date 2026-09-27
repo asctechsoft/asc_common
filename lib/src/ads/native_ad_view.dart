@@ -78,9 +78,8 @@ class _AscNativeAdViewState extends State<AscNativeAdView> {
 
   @override
   Widget build(BuildContext context) {
-    if (AscAdsConfig.isHideAd || !_loaded || _ad == null) {
-      return SizedBox(height: widget.height);
-    }
+    if (AscAdsConfig.isHideAd) return const SizedBox.shrink();
+    if (!_loaded || _ad == null) return SizedBox(height: widget.height);
     return SizedBox(height: widget.height, child: AdWidget(ad: _ad!));
   }
 }
