@@ -16,10 +16,22 @@ class AscBannerAdView extends StatefulWidget {
     required this.adUnitId,
     this.size = AdSize.banner,
     this.onPaidEvent,
-  });
+  }) : anchoredAdaptiveWidth = null;
+
+  /// A banner sized by Google's anchored adaptive algorithm for the current
+  /// orientation, given the screen (or container) [anchoredAdaptiveWidth] -
+  /// typically `MediaQuery.sizeOf(context).width`. Falls back to [AdSize.banner]
+  /// if the platform can't compute one for that width.
+  const AscBannerAdView.anchoredAdaptive({
+    super.key,
+    required this.adUnitId,
+    required double this.anchoredAdaptiveWidth,
+    this.onPaidEvent,
+  }) : size = AdSize.banner;
 
   final String adUnitId;
   final AdSize size;
+  final double? anchoredAdaptiveWidth;
 
   /// Gọi khi ghi nhận doanh thu quy đổi (impression đã được tính tiền) -
   /// app tự quyết định log đi đâu (Firebase Analytics, ...); package không
@@ -39,6 +51,7 @@ class AscBannerAdView extends StatefulWidget {
 class _AscBannerAdViewState extends State<AscBannerAdView> {
   BannerAd? _ad;
   bool _loaded = false;
+  AdSize _resolvedSize = AdSize.banner;
 
   @override
   void initState() {
@@ -46,7 +59,16 @@ class _AscBannerAdViewState extends State<AscBannerAdView> {
     if (!AscAdsConfig.isHideAd) _load();
   }
 
-  void _load() {
+  Future<void> _load() async {
+    final adaptiveWidth = widget.anchoredAdaptiveWidth;
+    _resolvedSize = adaptiveWidth == null
+        ? widget.size
+        : await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+                adaptiveWidth.truncate(),
+              ) ??
+              widget.size;
+    if (!mounted) return;
+
     final effectiveId = AscAdsConfig.resolveAdUnitId(
       adUnitId: widget.adUnitId,
       androidTestId: AscTestAdIds.androidBanner,
@@ -54,7 +76,7 @@ class _AscBannerAdViewState extends State<AscBannerAdView> {
     );
     _ad = BannerAd(
       adUnitId: effectiveId,
-      size: widget.size,
+      size: _resolvedSize,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
@@ -83,8 +105,8 @@ class _AscBannerAdViewState extends State<AscBannerAdView> {
     if (AscAdsConfig.isHideAd || !_loaded || ad == null) {
       // Giữ đúng kích thước để layout không giật khi quảng cáo tải xong.
       return SizedBox(
-        width: widget.size.width.toDouble(),
-        height: widget.size.height.toDouble(),
+        width: _resolvedSize.width.toDouble(),
+        height: _resolvedSize.height.toDouble(),
       );
     }
     return SizedBox(
