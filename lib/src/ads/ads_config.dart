@@ -1,4 +1,9 @@
+import 'dart:convert';
 import 'dart:io' show Platform;
+
+import 'package:android_id/android_id.dart';
+import 'package:crypto/crypto.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 /// Global ads switches this app's screens/services check before loading or
 /// rendering an ad - mirrors what used to live on a shared `AdvertsConfig`
@@ -29,5 +34,37 @@ class AscAdsConfig {
   }) {
     if (!isAdTestIds) return adUnitId;
     return Platform.isAndroid ? androidTestId : iosTestId;
+  }
+
+  /// MD5 hash of this device's Android ID (or iOS vendor ID), uppercased hex
+  /// - the format `MobileAds.instance.updateRequestConfiguration(
+  /// RequestConfiguration(testDeviceIds: [...]))` expects to mark a
+  /// non-emulator device as an AdMob test device even when requesting real
+  /// ad unit ids.
+  /// https://developers.google.com/admob/android/test-ads#add_your_test_device
+  static Future<String> getAdMobTestDeviceId() async {
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      var deviceId = '';
+
+      if (Platform.isAndroid) {
+        const androidIdPlugin = AndroidId();
+        final androidId = await androidIdPlugin.getId();
+        if ((androidId ?? '').isNotEmpty) {
+          deviceId = androidId!;
+        } else {
+          final androidInfo = await deviceInfo.androidInfo;
+          deviceId = androidInfo.id;
+        }
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        deviceId = iosInfo.identifierForVendor ?? '';
+      }
+
+      final digest = md5.convert(utf8.encode(deviceId.toLowerCase()));
+      return digest.toString().toUpperCase();
+    } catch (_) {
+      return 'UNKNOWN-DEVICE-ID';
+    }
   }
 }

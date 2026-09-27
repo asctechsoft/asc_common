@@ -25,6 +25,7 @@ export 'src/ads/ads_config.dart';
 export 'src/ads/app_open_ad_service.dart';
 export 'src/ads/banner_ad_view.dart';
 export 'src/ads/interstitial_ad_service.dart';
+export 'src/ads/native_ad_service.dart';
 export 'src/ads/native_ad_view.dart';
 export 'src/ads/rewarded_ad_service.dart';
 export 'src/ads/test_ad_ids.dart';
