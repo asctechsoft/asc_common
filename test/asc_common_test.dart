@@ -27,41 +27,4 @@ void main() {
     });
   });
 
-  group('AdLoadState', () {
-    test('các nhánh sealed class phân biệt đúng qua switch', () {
-      String describe(AdLoadState s) => switch (s) {
-        AdIdle() => 'idle',
-        AdLoading() => 'loading',
-        AdLoaded() => 'loaded',
-        AdFailed(:final error) => 'failed:$error',
-        AdShown() => 'shown',
-      };
-      expect(describe(const AdIdle()), 'idle');
-      expect(describe(const AdFailed('timeout')), 'failed:timeout');
-    });
-  });
-
-  group('AscConsentStatus', () {
-    test('các nhánh sealed class phân biệt đúng qua switch', () {
-      bool needsForm(AscConsentStatus s) => switch (s) {
-        AscConsentRequired() => true,
-        AscConsentUnknown() ||
-        AscConsentNotRequired() ||
-        AscConsentObtained() => false,
-      };
-      expect(needsForm(const AscConsentRequired()), true);
-      expect(needsForm(const AscConsentObtained()), false);
-    });
-  });
-
-  group('AscAdFrequencyTracker', () {
-    test('cho hiện quảng cáo lần đầu, chặn ngay sau khi vừa hiện', () {
-      final tracker = AscAdFrequencyTracker(
-        minInterval: const Duration(minutes: 1),
-      );
-      expect(tracker.canShow, true);
-      tracker.markShown();
-      expect(tracker.canShow, false);
-    });
-  });
 }

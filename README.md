@@ -2,8 +2,8 @@
 
 Shared internal Flutter package của ASC Tech Soft — dùng chung cho nhiều app
 (vai trò tương đương `bacha_common` bên Bachasoft, nhưng viết lại theo công
-nghệ hiện đại hơn: **không GetX, không flutter_screenutil**, dùng Riverpod +
-Dart 3 sealed class/pattern matching).
+nghệ hiện đại hơn: **không GetX, không Riverpod, không flutter_screenutil**,
+Dart 3 sealed class/pattern matching). Firebase + quảng cáo ở package `dsp_base`.
 
 ## UI primitives (`lib/src/ui/`)
 
@@ -23,34 +23,6 @@ trình dịch thuật 60+ ngôn ngữ hiện có — chỉ đổi cách nạp: `
 gắn vào `MaterialApp.localizationsDelegates`, thay vì tự parse rải rác ngoài
 vòng đời Flutter như bản cũ.
 
-## Ads (`lib/src/ads/`)
-
-Wrapper `google_mobile_ads`:
-
-- `AscBannerAdView`, `AscNativeAdView` — widget tự tải/dispose theo vòng đời.
-- `AscInterstitialAdService`, `AscRewardedAdService`, `AscAppOpenAdService` —
-  service tự quản tải trước/hiện/tải lại, trạng thái là `AdLoadState`
-  (`sealed class`: `AdIdle`/`AdLoading`/`AdLoaded`/`AdFailed`/`AdShown`) thay
-  vì `GetxController` + biến rời rạc.
-- `AscAdPreloadService` — gom cả ba loại full-screen ad, tải trước một lượt
-  lúc khởi động.
-- `AscAdFrequencyTracker` — giới hạn tần suất hiện quảng cáo.
-- `AscTestAdIds` — ID test chính thức của Google, chỉ dùng lúc dev.
-
-## GDPR / UMP (`lib/src/gdpr/`)
-
-`AscGdprNotifier` — Riverpod `AsyncNotifier<AscConsentStatus>` bọc luồng UMP
-(`ConsentInformation`/`ConsentForm`). `AscConsentStatus` là `sealed class`
-(`Unknown`/`NotRequired`/`Required`/`Obtained`) — nơi dùng `switch` đủ nhánh
-thay vì so sánh chuỗi/enum rời rạc.
-
-## Firebase utils (`lib/src/firebase/`)
-
-- `AscCrashlytics` — gắn bắt lỗi Flutter + lỗi async chưa bắt, log breadcrumb.
-- `AscAnalytics` — log event qua `AscAnalyticsEvent` (type-safe hơn string tự do).
-- `AscRemoteConfig` + `ascRemoteConfigProvider` — app tự truyền `defaults`,
-  package **không hardcode key/project nào**.
-
 ## Prefs (`lib/src/prefs/`)
 
 `AscPrefs` + `AscPrefKey<T>` — đọc/ghi `SharedPreferences` theo khoá có kiểu,
@@ -64,8 +36,8 @@ vĩnh viễn.
 ## Device / Connectivity (`lib/src/device/`, `lib/src/connectivity/`)
 
 - `AscDeviceInfo` — thông tin thiết bị gọn, chung field cho Android/iOS.
-- `ascConnectivityProvider`, `ascIsOnlineProvider` — trạng thái mạng qua
-  Riverpod `StreamProvider`.
+- `AscConnectivity` — `onChanged` (Stream), `isOnline()`; thuần Dart, không
+  phụ thuộc state management.
 
 ## Logging (`lib/src/logging/`)
 
@@ -77,37 +49,8 @@ breadcrumb.
 `AscReview` — bọc gói chính thức `in_app_review`, thay cho dialog 5 sao tự
 chế của bản cũ.
 
-## Bootstrap (`lib/src/init/`)
-
-`AscCommon.bootstrap(...)` — entry point khởi động **duy nhất**: nhận
-`FirebaseOptions` + `remoteConfigDefaults` từ app gọi, tự
-`Firebase.initializeApp`, gắn Crashlytics, fetch Remote Config, init Mobile
-Ads SDK (nếu `initAds: true`). Không tự chạy luồng GDPR (cần
-`ProviderContainer` thật, gọi `ascGdprProvider` sau khi `ProviderScope` đã
-dựng xong) và không tự gọi `runApp`/dựng `ProviderScope` — app vẫn tự chủ UI
-của mình.
-
-```dart
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final result = await AscCommon.bootstrap(
-    firebaseOptions: DefaultFirebaseOptions.currentPlatform,
-    remoteConfigDefaults: {'some_flag': false},
-    initAds: true,
-  );
-  runApp(
-    ProviderScope(
-      overrides: [ascRemoteConfigProvider.overrideWithValue(result.remoteConfig)],
-      child: const MyApp(),
-    ),
-  );
-}
-```
-
 ## Dependency đáng chú ý
 
-`firebase_core`, `firebase_crashlytics`, `firebase_analytics`,
-`firebase_remote_config`, `google_mobile_ads`, `flutter_riverpod`,
 `permission_handler`, `shared_preferences`, `connectivity_plus`,
 `device_info_plus`, `in_app_review`, `xml`, `logger`.
 
@@ -116,7 +59,7 @@ file này.
 
 ---
 
-Tóm: shared infra layer — UI primitives, ads, GDPR, Firebase utils,
+Tóm: shared infra layer — UI primitives,
 localization XML, prefs/permission/device/connectivity/logging/review có
 kiểu. Mọi app của ASC Tech Soft pull chung package qua Git dependency:
 

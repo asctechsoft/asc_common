@@ -4,7 +4,7 @@ export 'package:logger/logger.dart' show Level;
 
 /// Logger dùng chung - bọc gói `logger` (Pretty Printer sẵn màu/emoji cho
 /// console dev), có thể nối thêm sink tuỳ chỉnh qua [onLog] - ví dụ ghi
-/// breadcrumb vào Crashlytics (`AscCrashlytics.log`) mỗi khi có log warning
+/// breadcrumb vào Crashlytics (`DspCrashlytics.log` bên dsp_base) mỗi khi có log warning
 /// trở lên.
 class AscLogger {
   AscLogger({void Function(Level level, String message)? onLog})

@@ -1,6 +1,6 @@
 name: asc_common
-description: "Shared internal Flutter package của ASC Tech Soft - UI primitives, ads, GDPR, Firebase utils, localization... dùng chung cho nhiều app."
-version: 0.0.1
+description: "Shared internal Flutter package của ASC Tech Soft - UI primitives, localization XML, prefs, permission, device/connectivity, logging, in-app review... dùng chung cho nhiều app."
+version: 0.1.0
 homepage: https://github.com/asctechsoft/asc_common
 publish_to: 'none'
 
@@ -9,19 +9,11 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  android_id: ^0.5.1
   connectivity_plus: ^7.3.1
-  crypto: ^3.0.3
   device_info_plus: ^13.2.0
-  firebase_analytics: ^12.6.0
-  firebase_core: ^4.15.0
-  firebase_crashlytics: ^5.4.0
-  firebase_remote_config: ^6.7.0
   flutter:
     sdk: flutter
-  flutter_riverpod: ^3.4.3
   flutter_svg: ^2.2.3
-  google_mobile_ads: ^9.1.0
   in_app_review: ^2.0.12
   logger: ^2.8.0
   permission_handler: ^13.0.2
