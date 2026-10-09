@@ -1,3 +1,8 @@
+## 0.2.0
+
+* Thêm từ app: AppTouchable, BottomSafeArea, StaggerReveal/StaggerColumn, AppSwitch, AscLocale (GetX), LanguageNames, AscDateUtils, AscBuildFlavor, AscShare.
+* Thêm dependency: get, intl, share_plus, package_info_plus.
+
 ## 0.1.0
 
 * Tách Firebase (Analytics/Crashlytics/Remote Config) + Ads + GDPR/UMP + bootstrap sang package `dsp_base`.

@@ -1,6 +1,6 @@
 name: asc_common
 description: "Shared internal Flutter package của ASC Tech Soft - UI primitives, localization XML, prefs, permission, device/connectivity, logging, in-app review... dùng chung cho nhiều app."
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/asctechsoft/asc_common
 publish_to: 'none'
 
@@ -14,6 +14,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^2.2.3
+  get: ^4.7.2
+  intl: ^0.20.2
+  package_info_plus: ^10.0.0
+  share_plus: ^13.3.0
   in_app_review: ^2.0.12
   logger: ^2.8.0
   permission_handler: ^13.0.2

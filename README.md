@@ -2,7 +2,7 @@
 
 Shared internal Flutter package của ASC Tech Soft — dùng chung cho nhiều app
 (vai trò tương đương `bacha_common` bên Bachasoft, nhưng viết lại theo công
-nghệ hiện đại hơn: **không GetX, không Riverpod, không flutter_screenutil**,
+nghệ hiện đại hơn: **GetX là stack mặc định (state/DI/navigation), không Riverpod, không flutter_screenutil**,
 Dart 3 sealed class/pattern matching). Firebase + quảng cáo ở package `dsp_base`.
 
 ## UI primitives (`lib/src/ui/`)
@@ -52,9 +52,9 @@ chế của bản cũ.
 ## Dependency đáng chú ý
 
 `permission_handler`, `shared_preferences`, `connectivity_plus`,
-`device_info_plus`, `in_app_review`, `xml`, `logger`.
+`device_info_plus`, `in_app_review`, `xml`, `logger`, `get`, `intl`, `share_plus`, `package_info_plus`.
 
-**Không có**: `get` (GetX), `flutter_screenutil` — cố tình bỏ, xem phần đầu
+**Không có**: `flutter_screenutil` — cố tình bỏ, xem phần đầu
 file này.
 
 ---
@@ -70,3 +70,15 @@ dependencies:
       url: https://github.com/asctechsoft/asc_common.git
       ref: main
 ```
+
+## Mới (0.2.0) — chuyển từ app lên base
+
+| Mục | Mô tả |
+|---|---|
+| `AppTouchable`, `BottomSafeArea`, `StaggerReveal`/`StaggerColumn` | widget chung |
+| `AppSwitch` | switch có gradient, màu mặc định theo `ColorScheme`, app truyền màu riêng |
+| `AscLocale` | localization XML → GetX (`.tr`), `configure(...)` một lần lúc khởi động |
+| `LanguageNames` | tên ngôn ngữ (endonym + tên tiếng Anh) |
+| `AscDateUtils`, `AscDateTimeX` | tiện ích ngày, nhãn tuần/tháng theo `Get.locale` |
+| `AscBuildFlavor` | cờ flavor alpha/dev/product/claude |
+| `AscShare` | chia sẻ link app qua share sheet |
